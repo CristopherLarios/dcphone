@@ -2,54 +2,42 @@ import Boton from "../Components/Boton"
 import CampoTexto from "../Components/CampoTexto"
 import { Image, message } from "antd";
 import "../App.css"
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { DataContext } from "../Context/DataContext";
 
 
 
 function Login() {
 
+
+
     const [userstate, setuserstate] = useState('');
     const [passwordstate, setpasswordstate] = useState('');
 
-    async function Auth() {
+    const { Auth,setislog } = useContext(DataContext);
+
+    async function VerificarLogin() {
+
         if (userstate === '' || passwordstate === '') {
             message.error("Llene los campos");
             setuserstate('');
             setpasswordstate('');
         } else {
-            const identity = userstate;
-            const password = passwordstate;
-            const user = {
-                identity,
-                password
-            }
-            const url = 'http://127.0.0.1:8090/api/collections/users/auth-with-password'
-            try {
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Acept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(user),
-                });
-                const data = await res.json();
 
-                if (data.code != undefined) {
-                    message.error(data.message)
-                    setuserstate('');
-                    setpasswordstate('');
+            try {
+                const valido = await Auth(userstate, passwordstate)
+                if (valido?.code != undefined) {
+                    console.log('nok');
+                    message.error(valido.message);
                 } else {
-                    console.log("Autentificacion Exitosa")
-                    setuserstate('');
-                    setpasswordstate('');
+                    setislog(true)
+                    console.log(valido)
+                    // message.success('',valido.record.name);
+                    message.success(`Verificacion Exitosa, ${valido.record.name}`)
                 }
-                return data;
             } catch (error) {
-                console.log(error)
                 setuserstate('');
                 setpasswordstate('');
-                return error;
             }
         }
     }
@@ -74,7 +62,7 @@ function Login() {
                     <Boton
                         desc={"Iniciar Sesion"}
                         type={"primary"}
-                        oncl={Auth}
+                        oncl={VerificarLogin}
                     />
 
                 </div>
